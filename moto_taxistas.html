@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atualização de Status - Moto Táxi</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-4">Atualização de Status - Moto Táxis</h1>
+        <ul class="list-group">
+            {% for i, moto_taxi in enumerate(moto_taxis) %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span class="moto-taxi-name">{{ moto_taxi.nome }}</span>
+                <form action="/atualizar_status/{{ i }}" method="post">
+                    <button type="submit" class="btn btn-primary">{{ 'Disponível' if moto_taxi.disponivel else 'Indisponível' }}</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <script>
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+        socket.on('update_lista', function(data) {
+            const listItems = document.querySelectorAll('.list-group-item');
+            listItems.forEach((item, index) => {
+                const button = item.querySelector('button');
+                if (button) {
+                    button.textContent = data[index].disponivel ? 'Disponível' : 'Indisponível';
+                    button.classList.toggle('btn-primary', data[index].disponivel);
+                    button.classList.toggle('btn-secondary', !data[index].disponivel);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

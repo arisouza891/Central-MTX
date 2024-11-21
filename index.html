@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Moto Táxi</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+        function atualizarLista() {
+            fetch('/api/moto_taxis_disponiveis')
+                .then(response => response.json())
+                .then(data => {
+                    const lista = document.getElementById('lista-moto-taxi');
+                    lista.innerHTML = '';
+                    data.forEach((motoTaxi) => {
+                        const listItem = document.createElement('li');
+                        listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                        listItem.innerHTML = `
+                            <span class="moto-taxi-name">${motoTaxi.nome}</span>
+                            <a href="javascript:void(0);" class="btn btn-success" onclick="chamarMotoTaxi('${motoTaxi.telefone}', ${motoTaxi.index})">Chamar no WhatsApp</a>
+                        `;
+                        lista.appendChild(listItem);
+                    });
+                });
+        }
+
+        function chamarMotoTaxi(telefone, index) {
+            fetch(`/chamar_moto_taxi/${index}`, {method: 'POST'})
+                .then(response => response.json())
+                .then(data => {
+                    atualizarLista(); // Atualizar a lista após chamar o moto-táxi
+                    window.location.href = `https://wa.me/${telefone}`;
+                });
+        }
+
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+        socket.on('update_lista', function(data) {
+            atualizarLista();
+        });
+
+        window.onload = atualizarLista; // Atualiza a lista quando a página carrega
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-4">Moto Táxis Disponíveis</h1>
+        <ul class="list-group" id="lista-moto-taxi">
+            <!-- Moto-taxistas serão listados aqui -->
+        </ul>
+    </div>
+</body>
+</html>
